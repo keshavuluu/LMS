@@ -2,7 +2,7 @@ import express from "express";
 import cors from 'cors'
 import 'dotenv/config'
 import connectDB from "./configs/mongodb.js";
-import {clearWebhooks} from "./controllers/webhooks.js";
+import clearWebhooks from "./controllers/webhooks.js";
 const app = express();
 
 await connectDB();
