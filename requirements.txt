@@ -1,7 +1,0 @@
-npm i react-router-dom react-youtube uniqid quill humanize-duration rc-progress react-simple-star-rating
-npm init -y
-npm i express nodemon dotenv cors cloudinary mongoose multer stripe svix@1.42.0 @clerk/express 
-  "scripts": {
-    "server": "nodemon server.js",
-    "start": "node server.js"
-  },

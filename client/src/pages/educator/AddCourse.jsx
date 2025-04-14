@@ -88,34 +88,38 @@ const AddCourse = () => {
   };
   const addLecture = () => {
     setChapters(
-        chapters.map((chapter) => {
-            if (chapter.chapterId == currentChapterId) {
-                const newLecture = {
-                    ...lectureDetails,
-                    lectureOrder: chapter.chapterContent.length > 0 
-                        ? chapter.chapterContent.slice(-1)[0].lectureOrder + 1 
-                        : 1,
-                    lectureId: uniqid()
-                };
-                chapter.chapterContent.push(newLecture);
-            }
-            return chapter;
-        })
+      chapters.map((chapter) => {
+        if (chapter.chapterId == currentChapterId) {
+          const newLecture = {
+            ...lectureDetails,
+            lectureOrder:
+              chapter.chapterContent.length > 0
+                ? chapter.chapterContent.slice(-1)[0].lectureOrder + 1
+                : 1,
+            lectureId: uniqid(),
+          };
+          chapter.chapterContent.push(newLecture);
+        }
+        return chapter;
+      })
     );
     setShowPopup(false);
     getLectureDetails({
-        lectureTitle: '',
-        lectureDuration: '',
-        lectureUrl: '',
-        isPreviewFree: false,
+      lectureTitle: "",
+      lectureDuration: "",
+      lectureUrl: "",
+      isPreviewFree: false,
     });
-};
-const handleSubmit = async (e)=>{
-  e.preventDefault();
-};
+  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+  };
   return (
     <div className="h-screen overflow-scroll flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0">
-      <form className="flex flex-col gap-4 max-w-md w-full text-gray-500" onClick={handleSubmit}>
+      <form
+        className="flex flex-col gap-4 max-w-md w-full text-gray-500"
+        onClick={handleSubmit}
+      >
         <div className="flex flex-col gap-1">
           <p>Course Title</p>
           <input
