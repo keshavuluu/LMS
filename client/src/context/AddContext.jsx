@@ -1,14 +1,17 @@
 import { createContext, useEffect, useState } from "react";
 import { dummyCourses } from "../assets/assets";
 import humanizeDuration from "humanize-duration";
-
+import { useNavigate } from "react-router-dom";
+import { useAuth , useUser } from '@clerk/clerk-react';
 export const AppContext = createContext();
 
 export const AppContextProvider = (props) => {
   const currency = import.meta.env.VITE_CURRENCY;
   const [allCourses, setAllCourses] = useState([]);
-
-  // Initialize educator state from localStorage
+  const navigate = useNavigate();
+  const {getToken} = useAuth()
+  const {user} = useUser()
+  
   const [isEducator, setIsEducator] = useState(() => {
     try {
       const saved = localStorage.getItem("isEducator");
@@ -32,13 +35,18 @@ export const AppContextProvider = (props) => {
       console.error("Error updating localStorage:", error);
     }
   }, [isEducator]);
-
-  // Initialize courses on mount
+const logToken = async()=>{
+  console.log(await getToken());
+}
   useEffect(() => {
     fetchAllCourses();
     fetchUserEnrolledCourses();
   }, []);
-
+  useEffect(()=>{
+    if(user){
+      logToken()
+    }
+  },[user])
   const fetchAllCourses = async () => {
     setAllCourses(dummyCourses);
   };

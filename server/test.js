@@ -7,7 +7,6 @@ const port = 5000;
 app.use(cors());
 app.use(express.json());
 
-// Simple logging middleware
 app.use((req, res, next) => {
   console.log("=== Request Received ===");
   console.log("Method:", req.method);
@@ -18,7 +17,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Test endpoint
 app.get("/test", (req, res) => {
   console.log("Test endpoint hit!");
   res.json({ message: "Test successful!" });

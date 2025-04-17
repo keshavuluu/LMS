@@ -3,6 +3,9 @@ import uniqid from "uniqid";
 import Quill from "quill";
 import assets from "../../assets/assets";
 import "quill/dist/quill.snow.css";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { useUser } from "@clerk/clerk-react";
 
 const AddCourse = () => {
   const quillRef = useRef(null);
@@ -13,12 +16,38 @@ const AddCourse = () => {
   const [image, setImage] = useState(null);
   const [chapters, setChapters] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
-  const [currentChapterId, setCurrentChapterId] = useState(null);
+  const constCurrentChapterId = useRef(null);
   const [lectureDetails, setLectureDetails] = useState({
     lectureTitle: "",
     lectureDuration: "",
     lectureUrl: "",
     isPreviewFree: false,
+  });
+  const navigate = useNavigate();
+  const { user } = useUser();
+  const [loading, setLoading] = useState(false);
+  const [courseData, setCourseData] = useState({
+    courseTitle: "",
+    courseDescription: "",
+    coursePrice: "",
+    discount: "",
+    courseContent: [
+      {
+        chapterId: "ch01",
+        chapterOrder: 1,
+        chapterTitle: "",
+        chapterContent: [
+          {
+            lectureId: "lec01",
+            lectureTitle: "",
+            lectureDuration: "",
+            lectureUrl: "",
+            IsPreviewFree: false,
+            lectureOrder: 1,
+          },
+        ],
+      },
+    ],
   });
 
   useEffect(() => {
@@ -71,7 +100,7 @@ const AddCourse = () => {
 
   const handleLecture = (action, chapterId, lectureIndex) => {
     if (action === "add") {
-      setCurrentChapterId(chapterId);
+      constCurrentChapterId.current = chapterId;
       setShowPopup(true);
     } else if (action === "remove") {
       setChapters(
@@ -89,7 +118,7 @@ const AddCourse = () => {
   const addLecture = () => {
     setChapters(
       chapters.map((chapter) => {
-        if (chapter.chapterId == currentChapterId) {
+        if (chapter.chapterId == constCurrentChapterId.current) {
           const newLecture = {
             ...lectureDetails,
             lectureOrder:
@@ -111,20 +140,67 @@ const AddCourse = () => {
       isPreviewFree: false,
     });
   };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    setImage(file);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("image", image);
+      formData.append("courseData", JSON.stringify(courseData));
+
+      const response = await axios.post(
+        "http://localhost:5000/api/educator/add-course",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${await user.getToken()}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (response.data.success) {
+        alert("Course added successfully!");
+        navigate("/educator");
+      } else {
+        alert(response.data.message);
+      }
+    } catch (error) {
+      console.error("Error adding course:", error);
+      alert(error.response?.data?.message || "Error adding course");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setCourseData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   return (
     <div className="h-screen overflow-scroll flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0">
+      <h1 className="text-3xl font-bold mb-6">Add New Course</h1>
       <form
+        onSubmit={handleSubmit}
         className="flex flex-col gap-4 max-w-md w-full text-gray-500"
-        onClick={handleSubmit}
       >
         <div className="flex flex-col gap-1">
           <p>Course Title</p>
           <input
-            onChange={(e) => setCourseTitle(e.target.value)}
-            value={courseTitle}
+            name="courseTitle"
+            value={courseData.courseTitle}
+            onChange={handleInputChange}
             type="text"
             placeholder="Type here"
             className="outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500"
@@ -141,8 +217,9 @@ const AddCourse = () => {
           <div className="flex flex-col gap-1">
             <p>Course Price</p>
             <input
-              onChange={(e) => setCoursePrice(e.target.value)}
-              value={coursePrice}
+              name="coursePrice"
+              value={courseData.coursePrice}
+              onChange={handleInputChange}
               type="number"
               placeholder="0"
               className="outline-none md:py-2.5 py-2 w-28 px-3 rounded border border-gray-500"
@@ -161,7 +238,7 @@ const AddCourse = () => {
               <input
                 type="file"
                 id="thumbnailImage"
-                onChange={(e) => setImage(e.target.files[0])}
+                onChange={handleImageChange}
                 accept="image/*"
                 hidden
               />
@@ -177,8 +254,9 @@ const AddCourse = () => {
         <div className="flex flex-col gap-1">
           <p>Discount %</p>
           <input
-            onChange={(e) => setDiscount(e.target.value)}
-            value={discount}
+            name="discount"
+            value={courseData.discount}
+            onChange={handleInputChange}
             type="number"
             placeholder="0"
             min={0}
@@ -265,6 +343,14 @@ const AddCourse = () => {
             +Add Chapter
           </div>
         </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-blue-400 text-white px-4 py-2 rounded"
+        >
+          {loading ? "Adding Course..." : "Add Course"}
+        </button>
       </form>
 
       {showPopup && (
